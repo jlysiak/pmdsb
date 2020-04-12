@@ -1,0 +1,35 @@
+#!/bin/bash
+
+STATS=/sys/class/net/wlp61s0/statistics
+OLD_STATS=/tmp/wifi-status-old-state
+
+TIME=$(cat /proc/uptime | cut -d' ' -f1)
+IP=$(ip a show wlp61s0 | grep 'inet ' | awk '{print $2}')
+TX=$(cat $STATS/tx_bytes)
+RX=$(cat $STATS/rx_bytes)
+
+if [ -f $OLD_STATS ]; then
+	OLD_STATE=$(cat $OLD_STATS)
+	OLD_TIME=$(echo $OLD_STATE | cut -d' ' -f 1)
+	OLD_TX=$(echo $OLD_STATE | cut -d' ' -f 2)
+	OLD_RX=$(echo $OLD_STATE | cut -d' ' -f 3)
+else
+	OLD_TIME=0
+	OLD_TX=0
+	OLD_RX=0
+fi
+
+echo "$TIME $TX $RX" > $OLD_STATS
+
+DELTA_TIME=$(echo "$TIME - $OLD_TIME" | bc -l)
+DELTA_TX=$(echo "$TX - $OLD_TX" | bc -l)
+DELTA_RX=$(echo "$RX - $OLD_RX" | bc -l)
+VEL_TX=$(echo "$DELTA_TX / $DELTA_TIME / 1024 / 1024" | bc -l)
+VEL_RX=$(echo "$DELTA_RX / $DELTA_TIME / 1024 / 1024" | bc -l)
+
+FORMAT="WiFi: %15s U:%.2fMB/s D:%.2fMB/s"
+if [ ! -z "$IP" ]; then
+	printf "$FORMAT" $IP $VEL_TX $VEL_RX
+else
+	printf "$FORMAT" '---------------' 0 0
+fi

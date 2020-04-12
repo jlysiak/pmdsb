@@ -1,0 +1,10 @@
+#!/bin/bash
+
+BASE=/sys/class/power_supply
+BAT0=$BASE/BAT0
+STATUS=$(cat $BAT0/status | cut -c 1,2,3)
+CAPACITY=$(cat $BAT0/capacity)
+
+
+echo -e "$STATUS ${CAPACITY}%"
+
