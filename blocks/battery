@@ -4,7 +4,9 @@ BASE=/sys/class/power_supply
 BAT0=$BASE/BAT0
 STATUS=$(cat $BAT0/status | cut -c 1,2,3)
 CAPACITY=$(cat $BAT0/capacity)
+POWER=$(echo $(cat $BAT0/power_now) / 1000000 | bc -l)
+VOLTAGE=$(echo $(cat $BAT0/voltage_now) / 1000000 | bc -l)
+CYCLES=$(cat $BAT0/cycle_count)
 
 
-echo -e "$STATUS ${CAPACITY}%"
-
+printf '%s %03d%% %.2fW %02.3fV %d' $STATUS $CAPACITY $POWER $VOLTAGE $CYCLES
